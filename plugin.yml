@@ -1,0 +1,8 @@
+name: FreakyBlocks
+main: kiviuly.FreakyBlocks.Main
+version: 0.1
+author: kostan348, Aver005
+commands:
+  fb:
+    usage: /fb <Аргументы>
+    permission: freakyblocks.command
