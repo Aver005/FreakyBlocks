@@ -11,6 +11,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import com.mysql.fabric.xmlrpc.base.Array;
+
 public class Arena
 {
 	public Arena(String ID)
@@ -128,50 +130,19 @@ public class Arena
 		allShopBlocksByTier.put(4, fourTier);
 	}
 	
+	// Переменные карты
+	
 	public Main main = Main.main;
 	
 	private String ID;
 	private String name;
 	
 	private int maxPlayers = 2;
-	private int playersNow = 0;
-	
-	private int rounds = 0;
-	private int step = 0;
-	
 	private int startMoney = 5;
 	
-	private int firstPlayerMoney = startMoney;
-	private int secondPlayerMoney = startMoney;
-	
-	private Player firstPlayer = null;
-	private Player secondPlayer = null;
-	
-	private ArrayList<Player> playersList = new ArrayList<>();
-	private ArrayList<Player> lobbyList = new ArrayList<>();
-	
-	private FreakStage matchStage = FreakStage.Lobby;
 	private Location lobbyLocation = null;
 	
-	private Location player1Spawn = null;
-	private Location player2Spawn = null;
-	
-	private ArrayList<Location> deck1Locations = new ArrayList<>();
-	private ArrayList<Location> deck2Locations = new ArrayList<>();
-	
-	private ArrayList<Location> craft1Locations = new ArrayList<>();
-	private ArrayList<Location> craft2Locations = new ArrayList<>();
-	
-	private ArrayList<Location> shop1Locations = new ArrayList<>();
-	private ArrayList<Location> shop2Locations = new ArrayList<>();
-	
 	private ArrayList<FreakBlock> aviabledBlocks = new ArrayList<>();
-	
-	private int firstShopTier = 1;
-	private int secondShopTier = 1;
-	
-	private ArrayList<FreakBlock> firstShop = new ArrayList<>();
-	private ArrayList<FreakBlock> secondShop = new ArrayList<>();
 	
 	private HashMap<Integer, Integer> shopBlocksCountByTier = new HashMap<>();
 	private HashMap<Integer, ArrayList<FreakBlock>> shopBlocksByTier = new HashMap<>();
@@ -179,6 +150,30 @@ public class Arena
 	
 	private ArrayList<FreakBlock> deckPlayer1 = new ArrayList<>();
 	private ArrayList<FreakBlock> deckPlayer2 = new ArrayList<>();
+	
+	private FreakBlock selectedBlock = null;	
+	
+	// Переменные матча
+	
+	private int playersNow = 0;
+	private int rounds = 0;
+	private int step = 0;
+	private int firstPlayerMoney = startMoney;
+	private int secondPlayerMoney = startMoney;
+	
+	private ArrayList<Player> players = new ArrayList<>();
+	private ArrayList<Player> lobby = new ArrayList<>();
+	
+	private ArrayList<Location> playersSpawns = new ArrayList<>();
+	
+	private HashMap<Integer, ArrayList<Location>> deckLocations = new HashMap<>();
+	private HashMap<Integer, ArrayList<Location>> tavernLocations = new HashMap<>();
+	private HashMap<Integer, ArrayList<Location>> craftLocations = new HashMap<>();
+	
+	private ArrayList<Integer> shopTiers = new ArrayList<>();
+	private HashMap<Integer, ArrayList<FreakBlock>>
+	
+	private FreakStage matchStage = FreakStage.Lobby;
 	
 	
 	
@@ -261,17 +256,35 @@ public class Arena
 						firstPlayer.sendMessage("§2Раунд "+rounds+" начался.");
 						secondPlayer.sendMessage("§2Раунд "+rounds+" начался.");
 						
+						ArrayList<FreakBlock> deck = deckPlayer1;
+						if (rounds % 2 != 0) {deck = deckPlayer2;}
+						selectedBlock = deck.get(0);
+						step = 0;
+						
 						matchStage = FreakStage.Round;
 						sec = 240;
 					}
 				}
 				
-				
-				if (sec == 240)
+				if (matchStage == FreakStage.Round)
 				{
-					if (matchStage == FreakStage.Round)
+					Player whoAttack = rounds % 2 == 0 ? firstPlayer : secondPlayer;
+					Player whoCounter = rounds % 2 == 0 ? secondPlayer : firstPlayer;
+					
+					String bName = selectedBlock.getName();
+					int dmg = selectedBlock.getDamage();
+					int health = selectedBlock.getHealth();
+					
+					if (step == 0)
 					{
-						FreakBlock block = rounds % 2 == 0 ? deckPlayer1 : deckPlayer2;
+						whoAttack.sendMessage("§2Ваш блок "+bName+"§2 атакует.");
+						whoCounter.sendMessage("§eВаш противник атакует блоком "+bName+"§e.");
+						
+						FreakBlock fb = null;
+						for(fb : )
+						
+						step = 1;
+						return;
 					}
 				}
 				
@@ -335,16 +348,6 @@ public class Arena
 		this.startMoney = startMoney;
 	}
 
-	public ArrayList<Player> getPlayersList()
-	{
-		return playersList;
-	}
-
-	public void setPlayersList(ArrayList<Player> playersList)
-	{
-		this.playersList = playersList;
-	}
-
 	public FreakStage getMatchStage()
 	{
 		return matchStage;
@@ -365,86 +368,6 @@ public class Arena
 		this.lobbyLocation = lobbyLocation;
 	}
 
-	public Location getPlayer1Spawn()
-	{
-		return player1Spawn;
-	}
-
-	public void setPlayer1Spawn(Location player1Spawn)
-	{
-		this.player1Spawn = player1Spawn;
-	}
-
-	public Location getPlayer2Spawn()
-	{
-		return player2Spawn;
-	}
-
-	public void setPlayer2Spawn(Location player2Spawn)
-	{
-		this.player2Spawn = player2Spawn;
-	}
-
-	public ArrayList<Location> getDeck1Locations()
-	{
-		return deck1Locations;
-	}
-
-	public void setDeck1Locations(ArrayList<Location> deck1Locations)
-	{
-		this.deck1Locations = deck1Locations;
-	}
-
-	public ArrayList<Location> getDeck2Locations()
-	{
-		return deck2Locations;
-	}
-
-	public void setDeck2Locations(ArrayList<Location> deck2Locations)
-	{
-		this.deck2Locations = deck2Locations;
-	}
-
-	public ArrayList<Location> getCraft1Locations()
-	{
-		return craft1Locations;
-	}
-
-	public void setCraft1Locations(ArrayList<Location> craft1Locations)
-	{
-		this.craft1Locations = craft1Locations;
-	}
-
-	public ArrayList<Location> getCraft2Locations()
-	{
-		return craft2Locations;
-	}
-
-	public void setCraft2Locations(ArrayList<Location> craft2Locations)
-	{
-		this.craft2Locations = craft2Locations;
-	}
-
-	public ArrayList<Location> getShop1Locations()
-	{
-		return shop1Locations;
-	}
-
-	public void setShop1Locations(ArrayList<Location> shop1Locations)
-	{
-		this.shop1Locations = shop1Locations;
-	}
-
-	public ArrayList<Location> getShop2Locations()
-	{
-		return shop2Locations;
-	}
-
-	public void setShop2Locations(ArrayList<Location> shop2Locations)
-	{
-		this.shop2Locations = shop2Locations;
-	}
-
 	public ArrayList<FreakBlock> getAviabledBlocks()
 	{
 		return aviabledBlocks;
@@ -453,16 +376,6 @@ public class Arena
 	public void setAviabledBlocks(ArrayList<FreakBlock> aviabledBlocks)
 	{
 		this.aviabledBlocks = aviabledBlocks;
-	}
-
-	public ArrayList<Player> getLobbyList()
-	{
-		return lobbyList;
-	}
-
-	public void setLobbyList(ArrayList<Player> lobbyList)
-	{
-		this.lobbyList = lobbyList;
 	}
 
 	public int getFirstPlayerMoney()
@@ -613,5 +526,13 @@ public class Arena
 	public void setStep(int step)
 	{
 		this.step = step;
+	}
+
+	public FreakBlock getSelectedBlock() {
+		return selectedBlock;
+	}
+
+	public void setSelectedBlock(FreakBlock selectedBlock) {
+		this.selectedBlock = selectedBlock;
 	}
 }
