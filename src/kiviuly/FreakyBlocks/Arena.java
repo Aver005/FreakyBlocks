@@ -11,123 +11,12 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import com.mysql.fabric.xmlrpc.base.Array;
-
 public class Arena
 {
 	public Arena(String ID)
 	{
 		this.ID = ID;
 		this.name = ID;
-		
-		shopBlocksCountByTier.put(1, 4);
-		shopBlocksCountByTier.put(2, 5);
-		shopBlocksCountByTier.put(3, 6);
-		shopBlocksCountByTier.put(4, 7);
-		
-		ArrayList<FreakBlock> firstTier = new ArrayList<>();
-		ArrayList<FreakBlock> secondTier = new ArrayList<>();
-		ArrayList<FreakBlock> thirdTier = new ArrayList<>();
-		ArrayList<FreakBlock> fourTier = new ArrayList<>();
-		
-		FreakBlock b = new FreakBlock();
-		b.setCategory(FreakCategory.Wood);
-		b.setDamage(1);
-		b.setHealth(1);
-		b.setName("Деревянные доски");
-		b.setMaterial(Material.WOOD);
-		b.setPrice(1);
-		b.setID(0);
-		firstTier.add(b);
-		
-		b = new FreakBlock();
-		b.setDamage(1);
-		b.setHealth(1);
-		b.setName("Дуб");
-		b.setPrice(2);
-		b.setID(1);
-		firstTier.add(b);
-		
-		b = new FreakBlock();
-		b.setCategory(FreakCategory.Stone);
-		b.setMaterial(Material.COBBLESTONE);
-		b.setHealth(1);
-		b.setDamage(2);
-		b.setName("Булыжник");
-		b.setPrice(1);
-		b.setID(2);
-		firstTier.add(b);
-
-		b = new FreakBlock();
-		b.setCategory(FreakCategory.Weak);
-		b.setMaterial(Material.GLASS);
-		b.setHealth(2);
-		b.setDamage(1);
-		b.setName("Стекло");
-		b.setPrice(1);
-		b.setID(3);
-		firstTier.add(b);
-		
-		secondTier = (ArrayList<FreakBlock>) firstTier.clone();
-
-		b = new FreakBlock();
-		b.setCategory(FreakCategory.Metal);
-		b.setMaterial(Material.IRON_BLOCK);
-		b.setHealth(2);
-		b.setDamage(3);
-		b.setName("Железный блок");
-		b.setPrice(2);
-		b.setID(4);
-		secondTier.add(b);
-		
-		thirdTier = (ArrayList<FreakBlock>) secondTier.clone();
-		
-		b = new FreakBlock();
-		b.setCategory(FreakCategory.Wood);
-		b.setMaterial(Material.CHEST);
-		b.setHealth(4);
-		b.setDamage(3);
-		b.setName("Сундук");
-		b.setPrice(3);
-		b.setID(5);
-		thirdTier.add(b);
-		
-		fourTier = (ArrayList<FreakBlock>) thirdTier.clone();
-		
-		b = new FreakBlock();
-		b.setCategory(FreakCategory.Stone);
-		b.setMaterial(Material.FURNACE);
-		b.setHealth(2);
-		b.setDamage(5);
-		b.setName("Я печка");
-		b.setPrice(3);
-		b.setID(6);
-		fourTier.add(b);
-
-//		b = new FreakBlock();
-//		b.setCategory(FreakCategory.Wood);
-//		b.setMaterial(Material.FENCE);
-//		b.setHealth(1);
-//		b.setDamage(2);
-//		b.setName("Дер. забро");
-//		b.setPrice(2);
-//		b.setID(7);
-//		secondTier.add(b);
-//
-//		b = new FreakBlock();
-//		b.setCategory(FreakCategory.Wood);
-//		b.setMaterial(Material.FENCE);
-//		b.setHealth(1);
-//		b.setDamage(2);
-//		b.setName("Дер. забро");
-//		b.setPrice(2);
-//		b.setID(7);
-//		secondTier.add(b);
-		
-		allShopBlocksByTier.put(1, firstTier);
-		allShopBlocksByTier.put(2, secondTier);
-		allShopBlocksByTier.put(3, thirdTier);
-		allShopBlocksByTier.put(4, fourTier);
 	}
 	
 	// Переменные карты
@@ -139,39 +28,35 @@ public class Arena
 	
 	private int maxPlayers = 2;
 	private int startMoney = 5;
+	private int tavernSize = 4;
 	
 	private Location lobbyLocation = null;
 	
 	private ArrayList<FreakBlock> aviabledBlocks = new ArrayList<>();
-	
-	private HashMap<Integer, Integer> shopBlocksCountByTier = new HashMap<>();
-	private HashMap<Integer, ArrayList<FreakBlock>> shopBlocksByTier = new HashMap<>();
-	private HashMap<Integer, ArrayList<FreakBlock>> allShopBlocksByTier = new HashMap<>();
-	
-	private ArrayList<FreakBlock> deckPlayer1 = new ArrayList<>();
-	private ArrayList<FreakBlock> deckPlayer2 = new ArrayList<>();
-	
-	private FreakBlock selectedBlock = null;	
+	private HashMap<Integer, ArrayList<FreakBlock>> tavernBlocks = new HashMap<>();
 	
 	// Переменные матча
+	
+	private FreakBlock attackingBlock = null;	
+	private FreakBlock defendingBlock = null;	
+	private int attackingTeamID = 0;
+	private int defendingTeamID = 0;
 	
 	private int playersNow = 0;
 	private int rounds = 0;
 	private int step = 0;
-	private int firstPlayerMoney = startMoney;
-	private int secondPlayerMoney = startMoney;
+	private int circles = 0;
 	
 	private ArrayList<Player> players = new ArrayList<>();
 	private ArrayList<Player> lobby = new ArrayList<>();
 	
+	private ArrayList<Integer> playersMoney = new ArrayList<>();
 	private ArrayList<Location> playersSpawns = new ArrayList<>();
 	
 	private HashMap<Integer, ArrayList<Location>> deckLocations = new HashMap<>();
 	private HashMap<Integer, ArrayList<Location>> tavernLocations = new HashMap<>();
 	private HashMap<Integer, ArrayList<Location>> craftLocations = new HashMap<>();
-	
-	private ArrayList<Integer> shopTiers = new ArrayList<>();
-	private HashMap<Integer, ArrayList<FreakBlock>>
+	private HashMap<Integer, ArrayList<FreakBlock>> playersDecks = new HashMap<>();
 	
 	private FreakStage matchStage = FreakStage.Lobby;
 	
@@ -181,7 +66,7 @@ public class Arena
 	{
 		if (playersNow == maxPlayers) {return false;}
 		
-		getLobbyList().add(p);
+		lobby.add(p);
 		playersNow++;
 		
 		p.getInventory().clear();
@@ -211,7 +96,8 @@ public class Arena
 			{
 				if (playersNow < maxPlayers) {cancel(); return;}
 				
-				for(Player p : lobbyList)
+				
+				for(Player p : lobby)
 				{
 					if (p == null) {continue;}
 					p.setLevel(sec);
@@ -227,64 +113,75 @@ public class Arena
 				{
 					if (matchStage == FreakStage.Lobby)
 					{
-						firstPlayer = lobbyList.get(0);
-						secondPlayer = lobbyList.get(1);
-						
-						firstPlayer.sendMessage("§2Ваш баланс => §e§l" + firstPlayerMoney + " §eтугриков.");
-						secondPlayer.sendMessage("§2Ваш баланс => §e§l" + secondPlayerMoney + " §eтугриков.");
-						
-						for(int i = 0; i < 4; i++)
+						for(Player p : lobby)
 						{
-							int rnd = main.randomInt(0, 4);
-							FreakBlock fb = allShopBlocksByTier.get(1).get(rnd);
-							firstShop.add(fb);
-							shop1Locations.get(i).getBlock().setType(fb.getMaterial());
+							if (p == null) {continue;}
+							playersMoney.add(startMoney);
+							players.add(p);
+							p.sendMessage("§2Ваш баланс => §e§l" + startMoney + " §eтугриков.");
+						}
+						
+						int team = 0;
+						ArrayList<FreakBlock> tavern = getBlocksByTavernID(0);
+						
+						for(int i = 0; i < 4 * players.size(); i++)
+						{
+							ArrayList<FreakBlock> deck = playersDecks.get(team);
+							int rnd = main.randomInt(0, tavern.size());
+							FreakBlock fb = tavern.get(rnd);
+							deck.add(fb);
+							playersDecks.put(team, deck);
 							
-							rnd = main.randomInt(0, 4);
-							fb = allShopBlocksByTier.get(1).get(rnd);
-							secondShop.add(fb);
-							shop2Locations.get(i).getBlock().setType(fb.getMaterial());
+							if (i % 4 == 0 && i > 0) {team++;}
 						}
 						
 						sec = 60;
 						matchStage = FreakStage.Prepare;
-						lobbyList.clear();
+						lobby.clear();
 					}
 					
 					if (matchStage == FreakStage.Prepare)
 					{
-						firstPlayer.sendMessage("§2Раунд "+rounds+" начался.");
-						secondPlayer.sendMessage("§2Раунд "+rounds+" начался.");
+						for(Player p : players)
+						{
+							p.sendMessage("§2Раунд "+rounds+" начался.");
+						}
 						
-						ArrayList<FreakBlock> deck = deckPlayer1;
-						if (rounds % 2 != 0) {deck = deckPlayer2;}
-						selectedBlock = deck.get(0);
+						ArrayList<FreakBlock> deck = playersDecks.get(0);
+						for(int i = 1; i < players.size(); i++)
+						{
+							if (rounds % i == 0) {deck = playersDecks.get(i); attackingTeamID = i;}
+						}
+						
+						attackingBlock = deck.get(0);
 						step = 0;
+						circles = 0;
 						
 						matchStage = FreakStage.Round;
-						sec = 240;
+						sec = 242;
+						return;
 					}
 				}
 				
 				if (matchStage == FreakStage.Round)
 				{
-					Player whoAttack = rounds % 2 == 0 ? firstPlayer : secondPlayer;
-					Player whoCounter = rounds % 2 == 0 ? secondPlayer : firstPlayer;
-					
-					String bName = selectedBlock.getName();
-					int dmg = selectedBlock.getDamage();
-					int health = selectedBlock.getHealth();
-					
-					if (step == 0)
+					if (sec % 3 == 0)
 					{
-						whoAttack.sendMessage("§2Ваш блок "+bName+"§2 атакует.");
-						whoCounter.sendMessage("§eВаш противник атакует блоком "+bName+"§e.");
-						
-						FreakBlock fb = null;
-						for(fb : )
-						
-						step = 1;
-						return;
+						if (step == 0)
+						{
+							ArrayList<FreakBlock> otherDeck = playersDecks.getOrDefault(attackingTeamID + 1, null);
+							if (circles % 2 != 0) {otherDeck = playersDecks.getOrDefault(players.size() - 1, null);}
+							if (otherDeck == null) {otherDeck = playersDecks.get(0);}
+							
+							for(int i = otherDeck.size() - 1; i > -1; i--)
+							{
+								FreakBlock fb = otherDeck.get(i);
+								if (fb == null) {continue;}
+								
+								defendingBlock = fb;
+								if (fb.getCategory() == FreakCategory.Taunt) {break;}
+							}
+						}
 					}
 				}
 				
@@ -294,6 +191,11 @@ public class Arena
 			
 		}.runTaskTimer(main, 20L, 20L);
 		
+	}
+	
+	public ArrayList<FreakBlock> getBlocksByTavernID(int lvl)
+	{
+		return tavernBlocks.getOrDefault(lvl, new ArrayList<>());
 	}
 
 
@@ -378,116 +280,6 @@ public class Arena
 		this.aviabledBlocks = aviabledBlocks;
 	}
 
-	public int getFirstPlayerMoney()
-	{
-		return firstPlayerMoney;
-	}
-
-	public void setFirstPlayerMoney(int firstPlayerMoney)
-	{
-		this.firstPlayerMoney = firstPlayerMoney;
-	}
-
-	public int getSecondPlayerMoney()
-	{
-		return secondPlayerMoney;
-	}
-
-	public void setSecondPlayerMoney(int secondPlayerMoney)
-	{
-		this.secondPlayerMoney = secondPlayerMoney;
-	}
-
-	public Player getFirstPlayer()
-	{
-		return firstPlayer;
-	}
-
-	public void setFirstPlayer(Player firstPlayer)
-	{
-		this.firstPlayer = firstPlayer;
-	}
-
-	public Player getSecondPlayer()
-	{
-		return secondPlayer;
-	}
-
-	public void setSecondPlayer(Player secondPlayer)
-	{
-		this.secondPlayer = secondPlayer;
-	}
-
-	public HashMap<Integer, Integer> getShopBlocksCountByTier()
-	{
-		return shopBlocksCountByTier;
-	}
-
-	public void setShopBlocksCountByTier(HashMap<Integer, Integer> shopBlocksCountByTier)
-	{
-		this.shopBlocksCountByTier = shopBlocksCountByTier;
-	}
-
-	public HashMap<Integer, ArrayList<FreakBlock>> getShopBlocksByTier()
-	{
-		return shopBlocksByTier;
-	}
-
-	public void setShopBlocksByTier(HashMap<Integer, ArrayList<FreakBlock>> shopBlocksByTier)
-	{
-		this.shopBlocksByTier = shopBlocksByTier;
-	}
-
-	public HashMap<Integer, ArrayList<FreakBlock>> getAllShopBlocksByTier()
-	{
-		return allShopBlocksByTier;
-	}
-
-	public void setAllShopBlocksByTier(HashMap<Integer, ArrayList<FreakBlock>> allShopBlocksByTier)
-	{
-		this.allShopBlocksByTier = allShopBlocksByTier;
-	}
-
-	public int getFirstShopTier()
-	{
-		return firstShopTier;
-	}
-
-	public void setFirstShopTier(int firstShopTier)
-	{
-		this.firstShopTier = firstShopTier;
-	}
-
-	public int getSecondShopTier()
-	{
-		return secondShopTier;
-	}
-
-	public void setSecondShopTier(int secondShopTier)
-	{
-		this.secondShopTier = secondShopTier;
-	}
-
-	public ArrayList<FreakBlock> getSecondShop()
-	{
-		return secondShop;
-	}
-
-	public void setSecondShop(ArrayList<FreakBlock> secondShop)
-	{
-		this.secondShop = secondShop;
-	}
-
-	public ArrayList<FreakBlock> getFirstShop()
-	{
-		return firstShop;
-	}
-
-	public void setFirstShop(ArrayList<FreakBlock> firstShop)
-	{
-		this.firstShop = firstShop;
-	}
-
 	public int getRounds()
 	{
 		return rounds;
@@ -496,26 +288,6 @@ public class Arena
 	public void setRounds(int rounds)
 	{
 		this.rounds = rounds;
-	}
-
-	public ArrayList<FreakBlock> getDeckPlayer1()
-	{
-		return deckPlayer1;
-	}
-
-	public void setDeckPlayer1(ArrayList<FreakBlock> deckPlayer1)
-	{
-		this.deckPlayer1 = deckPlayer1;
-	}
-
-	public ArrayList<FreakBlock> getDeckPlayer2()
-	{
-		return deckPlayer2;
-	}
-
-	public void setDeckPlayer2(ArrayList<FreakBlock> deckPlayer2)
-	{
-		this.deckPlayer2 = deckPlayer2;
 	}
 
 	public int getStep()
@@ -528,11 +300,153 @@ public class Arena
 		this.step = step;
 	}
 
-	public FreakBlock getSelectedBlock() {
-		return selectedBlock;
+	public int getTavernSize()
+	{
+		return tavernSize;
 	}
 
-	public void setSelectedBlock(FreakBlock selectedBlock) {
-		this.selectedBlock = selectedBlock;
+	public void setTavernSize(int tavernSize)
+	{
+		this.tavernSize = tavernSize;
+	}
+
+	public HashMap<Integer, ArrayList<FreakBlock>> getTavernBlocks()
+	{
+		return tavernBlocks;
+	}
+
+	public void setTavernBlocks(HashMap<Integer, ArrayList<FreakBlock>> tavernBlocks)
+	{
+		this.tavernBlocks = tavernBlocks;
+	}
+
+	public ArrayList<Player> getPlayers()
+	{
+		return players;
+	}
+
+	public void setPlayers(ArrayList<Player> players)
+	{
+		this.players = players;
+	}
+
+	public ArrayList<Player> getLobby()
+	{
+		return lobby;
+	}
+
+	public void setLobby(ArrayList<Player> lobby)
+	{
+		this.lobby = lobby;
+	}
+
+	public ArrayList<Integer> getPlayersMoney()
+	{
+		return playersMoney;
+	}
+
+	public void setPlayersMoney(ArrayList<Integer> playersMoney)
+	{
+		this.playersMoney = playersMoney;
+	}
+
+	public ArrayList<Location> getPlayersSpawns()
+	{
+		return playersSpawns;
+	}
+
+	public void setPlayersSpawns(ArrayList<Location> playersSpawns)
+	{
+		this.playersSpawns = playersSpawns;
+	}
+
+	public HashMap<Integer, ArrayList<Location>> getDeckLocations()
+	{
+		return deckLocations;
+	}
+
+	public void setDeckLocations(HashMap<Integer, ArrayList<Location>> deckLocations)
+	{
+		this.deckLocations = deckLocations;
+	}
+
+	public HashMap<Integer, ArrayList<Location>> getTavernLocations()
+	{
+		return tavernLocations;
+	}
+
+	public void setTavernLocations(HashMap<Integer, ArrayList<Location>> tavernLocations)
+	{
+		this.tavernLocations = tavernLocations;
+	}
+
+	public HashMap<Integer, ArrayList<Location>> getCraftLocations()
+	{
+		return craftLocations;
+	}
+
+	public void setCraftLocations(HashMap<Integer, ArrayList<Location>> craftLocations)
+	{
+		this.craftLocations = craftLocations;
+	}
+
+	public HashMap<Integer, ArrayList<FreakBlock>> getPlayersDecks()
+	{
+		return playersDecks;
+	}
+
+	public void setPlayersDecks(HashMap<Integer, ArrayList<FreakBlock>> playersDecks)
+	{
+		this.playersDecks = playersDecks;
+	}
+
+	public FreakBlock getAttackingBlock()
+	{
+		return attackingBlock;
+	}
+
+	public void setAttackingBlock(FreakBlock attackingBlock)
+	{
+		this.attackingBlock = attackingBlock;
+	}
+
+	public FreakBlock getDefendingBlock()
+	{
+		return defendingBlock;
+	}
+
+	public void setDefendingBlock(FreakBlock defendingBlock)
+	{
+		this.defendingBlock = defendingBlock;
+	}
+
+	public int getAttackingTeamID()
+	{
+		return attackingTeamID;
+	}
+
+	public void setAttackingTeamID(int attackingTeamID)
+	{
+		this.attackingTeamID = attackingTeamID;
+	}
+
+	public int getDefendingTeamID()
+	{
+		return defendingTeamID;
+	}
+
+	public void setDefendingTeamID(int defendingTeamID)
+	{
+		this.defendingTeamID = defendingTeamID;
+	}
+
+	public int getCircles()
+	{
+		return circles;
+	}
+
+	public void setCircles(int circles)
+	{
+		this.circles = circles;
 	}
 }
