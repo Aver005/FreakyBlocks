@@ -73,24 +73,6 @@ public class Commands implements CommandExecutor
 						return true;
 					}
 					
-					if (sub.equals("setspawn1"))
-					{
-						if (!main.getArenas().containsKey(name)) {SM(p, "§cДанной арены не существует."); return true;}
-						Arena arena = main.getArenas().get(name);
-						arena.setPlayer1Spawn(p.getLocation());
-						SM(p, "§2Спавн первого игрока на арене §a" + name + "§2 установлен.");
-						return true;
-					}
-
-					if (sub.equals("setspawn2"))
-					{
-						if (!main.getArenas().containsKey(name)) {SM(p, "§cДанной арены не существует."); return true;}
-						Arena arena = main.getArenas().get(name);
-						arena.setPlayer2Spawn(p.getLocation());
-						SM(p, "§2Спавн второго игрока на арене §a" + name + "§2 установлен.");
-						return true;
-					}
-					
 					if (sub.equals("setlobby"))
 					{
 						if (!main.getArenas().containsKey(name)) {SM(p, "§cДанной арены не существует."); return true;}
@@ -112,6 +94,19 @@ public class Commands implements CommandExecutor
 						
 						SM(p, "§aВы зашли на арену.");
 						return true;
+					}
+					
+					if (count >= 3)
+					{
+						if (sub.equals("setspawn"))
+						{
+							if (!main.getArenas().containsKey(name)) {SM(p, "§cДанной арены не существует."); return true;}
+							int teamID = Integer.parseInt(args[2]);
+							Arena arena = main.getArenas().get(name);
+							arena.addPlayerSpawn(teamID, p.getLocation());
+							SM(p, "§2Спавн игрока на арене §a" + name + "§2 установлен.");
+							return true;
+						}
 					}
 				}
 			}

@@ -1,6 +1,8 @@
 package kiviuly.FreakyBlocks;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 
 public class FreakBlock
 {
@@ -10,12 +12,34 @@ public class FreakBlock
 	
 	private Material material = Material.LOG;
 	private FreakCategory category = FreakCategory.Wood;
+	private Location location = null;
+	private Sound destroySound = Sound.BLOCK_CHEST_CLOSE;
+	private Sound damageSound = Sound.BLOCK_ANVIL_HIT;
 	
 	private int price = 1;
 	
 	private int health = 1;
 	private int damage = 1;
 	
+	
+	
+	
+	public void damage(int damage) 
+	{
+		if (health <= damage)
+		{
+			destroy();
+			return;
+		}
+		
+		location.getWorld().playSound(location, damageSound, 1.0f, 1.0f);
+	}
+	
+	public void destroy()
+	{
+		location.getBlock().setType(Material.AIR);
+		location.getWorld().playSound(location, destroySound, 1.0f, 1.0f);
+	}
 	
 	
 	
@@ -83,5 +107,13 @@ public class FreakBlock
 	public void setDamage(int damage)
 	{
 		this.damage = damage;
+	}
+
+	public Location getLocation() {
+		return location;
+	}
+
+	public void setLocation(Location location) {
+		this.location = location;
 	}
 }

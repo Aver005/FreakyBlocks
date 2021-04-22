@@ -181,6 +181,35 @@ public class Arena
 								defendingBlock = fb;
 								if (fb.getCategory() == FreakCategory.Taunt) {break;}
 							}
+							
+							step = 1;
+						}
+						else if (step == 1 && step == 2)
+						{
+							int dmg = attackingBlock.getDamage();
+							defendingBlock.damage(dmg);
+							
+							Player p = players.get(attackingTeamID);
+							p.sendMessage("Ваш блок нанёс урон: "+ dmg +" hp.");
+							
+							p = players.get(defendingTeamID);
+							p.sendMessage("Ваш блок получил урон: " + dmg + " hp.");
+							
+							int temp = defendingTeamID;
+							defendingTeamID = attackingTeamID;
+							attackingTeamID = temp;
+							
+							FreakBlock t = defendingBlock;
+							defendingBlock = attackingBlock;
+							attackingBlock = t;
+							
+							step++;
+						}
+						else if (step == 3)
+						{
+							step = 0;
+							circles = 0;
+							sec = 242;
 						}
 					}
 				}
@@ -448,5 +477,44 @@ public class Arena
 	public void setCircles(int circles)
 	{
 		this.circles = circles;
+	}
+
+	public void addPlayerSpawn(int teamID, Location location) 
+	{
+		if (teamID >= playersSpawns.size())
+		{
+			playersSpawns.add(location);
+			return;
+		}
+
+		playersSpawns.set(teamID, location);
+	}
+	
+	public void addBlockToTavern(int tavernID, FreakBlock fb)
+	{
+		ArrayList<FreakBlock> fbs = tavernBlocks.getOrDefault(tavernID, new ArrayList<>());
+		fbs.add(fb);
+		tavernBlocks.put(tavernID, fbs);
+	}
+	
+	public void removeBlockFromTavern(int tavernID, Material mat)
+	{
+		ArrayList<FreakBlock> fbs = tavernBlocks.getOrDefault(tavernID, new ArrayList<>());
+		ArrayList<FreakBlock> removed = new ArrayList<>();
+		for(FreakBlock fb : fbs)
+		{
+			if (fb == null) {continue;}
+			if (fb.getMaterial().equals(mat)) {removed.add(fb);}
+		}
+		fbs.removeAll(removed);
+		tavernBlocks.put(tavernID, fbs);
+	}
+	
+	public boolean isPlayerInMatch(Player p)
+	{
+		if (players.contains(p)) {return true;}
+		if (lobby.contains(p)) {return true;}
+		
+		return false;
 	}
 }
