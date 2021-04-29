@@ -107,6 +107,15 @@ public class Commands implements CommandExecutor
 							SM(p, "§2Спавн игрока на арене §a" + name + "§2 установлен.");
 							return true;
 						}
+						
+						if (sub.equals("addblock"))
+						{
+							if (!main.getArenas().containsKey(name)) {SM(p, "§cДанной арены не существует."); return true;}
+							Arena arena = main.getArenas().get(name);
+							arena.addPlayerSpawn(teamID, p.getLocation());
+							SM(p, "§2Спавн игрока на арене §a" + name + "§2 установлен.");
+							return true;
+						}
 					}
 				}
 			}
